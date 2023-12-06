@@ -16,7 +16,7 @@ defmodule Issues.CLI do
   `argv` can be -h or --help, which returns :help.
   Otherwise it is a github user name, project name, and (optionally)
   the number of entries to format.
-  Return a tuple of `{ user, project, count }`, or `:help` if help was given.
+  Return a tuple of `{ user, project, count }`, or `:help` if help was given.decode_respose
   """
   def parse_args(argv) do
     OptionParser.parse(argv, switches: [help: :boolean], aliases: [h: :help])
@@ -36,5 +36,14 @@ defmodule Issues.CLI do
     System.halt(0)
   end
 
-  defp process({user, project, _count}), do: Issues.GithubIssues.fetch(user, project)
+  defp process({user, project, _count}) do
+    Issues.GithubIssues.fetch(user, project)
+    |> decode_response() 
+  end
+
+  defp decode_response({:ok, body}), do: body
+  defp decode_response({:error, error}) do
+    IO.puts("Error fetching from Github: #{error["message"]}")
+    System.halt(2)  
+  end
 end
